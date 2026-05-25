@@ -25,7 +25,7 @@ Powered by Gemini 1.5 Flash · Edge-TTS · Pexels · FFmpeg
 ### Step 1 — Clone & install
 ```bash
 git clone <your-repo-url>
-cd youtube-automation-agent
+cd yt-automation-learning
 pip install -r requirements.txt
 ```
 

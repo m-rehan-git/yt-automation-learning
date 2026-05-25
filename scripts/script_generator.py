@@ -61,7 +61,7 @@ class ScriptGenerator:
     def __init__(self, output_dir: str = None):
         self.ai = get_client()
         self.output_dir = Path(output_dir or os.getenv("OUTPUT_DIR", "output"))
-        os.makedirs(self.output_dir, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def generate_script(self, topic: str, concept: dict = None) -> dict:
         """

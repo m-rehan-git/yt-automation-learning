@@ -35,8 +35,9 @@ BANNER = """
 
 class Pipeline:
     def __init__(self, output_dir: str = None):
-        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
-        os.makedirs(self.output_dir, exist_ok=True)
+        self.output_dir = Path(output_dir or os.getenv("OUTPUT_DIR", "output"))
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        (self.output_dir / "clips").mkdir(exist_ok=True)
 
     def run(
         self,
@@ -173,7 +174,7 @@ class Pipeline:
         print(f"{'─'*62}")
 
     def _save(self, data: dict, filename: str):
-        path = os.path.join(self.output_dir, filename)
+        path = self.output_dir / filename
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
