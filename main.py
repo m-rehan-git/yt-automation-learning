@@ -11,6 +11,7 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
+import traceback
 
 load_dotenv()
 
@@ -19,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 
 from researcher import NicheResearcher
 from script_generator import ScriptGenerator
+from voiceover import generate_voiceover_sync
 from visuals import VisualsFetcher
 from thumbnails import ThumbnailGenerator
 from compose import VideoComposer
@@ -27,7 +29,7 @@ from seo import SEOGenerator
 
 BANNER = """
 ╔══════════════════════════════════════════════════════════════╗
-║         YouTube Automation Agent  •  Powered by Gemini       ║
+║         YouTube Automation Agent  •  Powered by Gemini         ║
 ║         Phase 1: Research  →  Phase 2: Script  →  Phase 3: SEO ║
 ╚══════════════════════════════════════════════════════════════╝
 """
@@ -49,37 +51,26 @@ class Pipeline:
         print(f"  ⏰  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
         results = {"success": False, "stages": {}, "timestamp": datetime.now().isoformat()}
+        video_path = None  # Initialize to None for safe error handling
 
         try:
             # ── PHASE 1: Competitive Research ────────────────────────────
             self._header("PHASE 1", "COMPETITIVE RESEARCH & NICHE BLUEPRINT")
             concept = {}
 
-            if skip_research or topic:
-                # If topic given directly, skip research or do quick research
-                niche = topic or os.getenv("CHANNEL_NICHE", "Mystery and History")
-                print(f"  📌  Topic override: {niche}")
-                if not skip_research:
-                    researcher = NicheResearcher(output_dir=self.output_dir)
-                    blueprint = researcher.research(niche)
-                    concept = researcher.pick_top_concept(blueprint)
-                    topic = concept.get("concept_title", niche)
-                    self._save(blueprint, "blueprint.json")
-                    results["stages"]["research"] = {
-                        "success": True,
-                        "concepts_generated": len(blueprint.get("niche_blueprint", [])),
-                        "chosen_concept": topic,
-                    }
-                else:
-                    results["stages"]["research"] = {"success": True, "skipped": True}
+            # Skip research entirely when --topic is explicitly provided
+            if topic and not skip_research:
+                print(f"  📌  Topic provided (skipping research): {topic}")
+                results["stages"]["research"] = {"success": True, "skipped": True}
+            elif skip_research:
+                results["stages"]["research"] = {"success": True, "skipped": True}
             else:
-                niche = os.getenv("CHANNEL_NICHE", "Mystery and Ancient History")
+                niche = topic or os.getenv("CHANNEL_NICHE", "Mystery and Ancient History")
                 researcher = NicheResearcher(output_dir=self.output_dir)
                 blueprint = researcher.research(niche)
                 concept = researcher.pick_top_concept(blueprint)
                 topic = concept.get("concept_title", niche)
                 self._save(blueprint, "blueprint.json")
-                print(f"  🎯  Top concept: {topic}")
                 results["stages"]["research"] = {
                     "success": True,
                     "concepts_generated": len(blueprint.get("niche_blueprint", [])),
@@ -99,7 +90,6 @@ class Pipeline:
 
             # ── PHASE 2b: TTS Voiceover ───────────────────────────────────
             self._header("PHASE 2b", "TEXT-TO-SPEECH VOICEOVER")
-            from voiceover import generate_voiceover_sync
             audio_path = generate_voiceover_sync(output_dir=self.output_dir)
             results["stages"]["voiceover"] = {"success": True, "audio_path": audio_path}
 
@@ -161,10 +151,11 @@ class Pipeline:
         except Exception as e:
             print(f"\n  ❌  Pipeline failed: {e}")
             results["error"] = str(e)
-            import traceback; traceback.print_exc()
+            traceback.print_exc()
 
         # Save run results
-        self._save(results, "pipeline_results.json")
+        if video_path:
+            self._save(results, "pipeline_results.json")
         return results
 
     # ------------------------------------------------------------------
