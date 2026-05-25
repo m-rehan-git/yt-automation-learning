@@ -6,6 +6,7 @@ Parses [VISUAL: ...] tags from script.json and downloads matching HD clips.
 import os
 import json
 import time
+import re
 import requests
 from pathlib import Path
 from typing import Optional
@@ -28,8 +29,8 @@ class VisualsFetcher:
         self.api_key = os.getenv("PEXELS_API_KEY")
         if not self.api_key:
             raise ValueError("PEXELS_API_KEY not set in .env")
-        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
-        self.clips_dir = os.path.join(self.output_dir, "clips")
+        self.output_dir = Path(output_dir or os.getenv("OUTPUT_DIR", "output"))
+        self.clips_dir = self.output_dir / "clips"
         os.makedirs(self.clips_dir, exist_ok=True)
         self.headers = {"Authorization": self.api_key}
         self._cache = {}  # avoid duplicate downloads
@@ -72,12 +73,12 @@ class VisualsFetcher:
             return self._cache[query]
 
         filename = f"clip_{index:03d}.mp4"
-        output_path = os.path.join(self.clips_dir, filename)
+        output_path = self.clips_dir / filename
 
         # Skip re-download if file exists
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 50_000:
-            self._cache[query] = output_path
-            return output_path
+        if output_path.exists() and output_path.stat().st_size > 50_000:
+            self._cache[query] = str(output_path)
+            return str(output_path)
 
         try:
             params = {
@@ -109,11 +110,11 @@ class VisualsFetcher:
                 for chunk in dl.iter_content(chunk_size=65536):
                     f.write(chunk)
 
-            size_mb = os.path.getsize(output_path) / 1_048_576
+            size_mb = output_path.stat().st_size / 1_048_576
             label = "fallback" if is_fallback else "tag"
             print(f"  ✅  [{label}] '{query}' → {filename} ({size_mb:.1f} MB)")
-            self._cache[query] = output_path
-            return output_path
+            self._cache[query] = str(output_path)
+            return str(output_path)
 
         except requests.RequestException as e:
             print(f"  ❌  Pexels error for '{query}': {e}")

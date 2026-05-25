@@ -5,6 +5,7 @@ Generates 3 title options, keyword-dense description, 15 tags, and hashtags.
 
 import os
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 from ai_client import get_client
 
@@ -47,7 +48,7 @@ Hashtags: 3–5, all relevant and not too niche.
 class SEOGenerator:
     def __init__(self, output_dir: str = None):
         self.ai = get_client()
-        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
+        self.output_dir = Path(output_dir or os.getenv("OUTPUT_DIR", "output"))
 
     def generate_metadata(self, script_data: dict) -> dict:
         """Generate full SEO metadata package from script data."""
@@ -81,7 +82,7 @@ Requirements:
             metadata = self._fallback_metadata(title, niche)
 
         # Save metadata
-        metadata_path = os.path.join(self.output_dir, "metadata.json")
+        metadata_path = self.output_dir / "metadata.json"
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
 
@@ -97,7 +98,7 @@ Requirements:
         titles = metadata.get("titles", [])
         best_title = titles[rec_idx] if titles else "Untitled"
 
-        package_path = os.path.join(self.output_dir, "publication_package.md")
+        package_path = self.output_dir / "publication_package.md"
         with open(package_path, "w", encoding="utf-8") as f:
             f.write("# YouTube Publication Package\n\n")
             f.write(f"## ✅ Recommended Title\n{best_title}\n\n")

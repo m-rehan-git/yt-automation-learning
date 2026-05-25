@@ -4,10 +4,10 @@ Converts the clean narration text to MP3 audio.
 """
 
 import os
+import re
 import asyncio
 import json
-import edge_tts
-import pyttsx3
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,6 +17,7 @@ USE_PYTTX3 = os.getenv("USE_PYTTX3", "false").lower() == "true"
 
 async def generate_voiceover(text: str, voice: str, output_path: str) -> str:
     """Generate MP3 voiceover from text using Edge-TTS."""
+    import edge_tts
     communicate = edge_tts.Communicate(text, voice)
     await communicate.save(output_path)
     return output_path
@@ -24,6 +25,7 @@ async def generate_voiceover(text: str, voice: str, output_path: str) -> str:
 
 def generate_voiceover_pyttsx3(text: str, output_path: str) -> str:
     """Generate WAV voiceover using pyttsx3 (offline fallback)."""
+    import pyttsx3
     engine = pyttsx3.init()
     
     # Try to find a good voice
@@ -39,6 +41,16 @@ def generate_voiceover_pyttsx3(text: str, output_path: str) -> str:
     return output_path
 
 
+def _extract_clean_text(script_json_path: str) -> str:
+    """Extract clean text without [VISUAL:] tags from script.json."""
+    with open(script_json_path, encoding="utf-8") as f:
+        data = json.load(f)
+    script = data.get("script", "")
+    # Remove [VISUAL: ...] tags
+    clean = re.sub(r"\[VISUAL:.*?\]", "", script, flags=re.IGNORECASE)
+    return re.sub(r"\n{3,}", "\n\n", clean).strip()
+
+
 async def generate_from_script_file(
     script_path: str = None,
     voice: str = None,
@@ -49,18 +61,22 @@ async def generate_from_script_file(
     Read voiceover.txt (clean script) and generate audio.
     Returns path to the generated MP3.
     """
-    output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
+    output_dir = Path(output_dir or os.getenv("OUTPUT_DIR", "output"))
 
     # Resolve paths
     if script_path is None:
-        script_path = os.path.join(output_dir, "voiceover.txt")
+        script_path = output_dir / "voiceover.txt"
+    else:
+        script_path = Path(script_path)
     if output_path is None:
-        output_path = os.path.join(output_dir, "voiceover.mp3")
+        output_path = output_dir / "voiceover.mp3"
+    else:
+        output_path = Path(output_path)
 
     # Get voice — check script.json first, then .env, then default
     if voice is None:
-        script_json = os.path.join(output_dir, "script.json")
-        if os.path.exists(script_json):
+        script_json = output_dir / "script.json"
+        if script_json.exists():
             with open(script_json, encoding="utf-8") as f:
                 data = json.load(f)
                 voice = data.get("suggested_tts_voice",
@@ -68,12 +84,22 @@ async def generate_from_script_file(
         else:
             voice = os.getenv("TTS_VOICE", "en-US-GuyNeural")
 
-    # Read text
-    with open(script_path, encoding="utf-8") as f:
-        text = f.read().strip()
+    # Read text - try voiceover.txt first, fallback to script.json
+    if script_path.exists():
+        with open(script_path, encoding="utf-8") as f:
+            text = f.read().strip()
+    else:
+        # Fallback: extract from script.json
+        script_json = output_dir / "script.json"
+        if script_json.exists():
+            text = _extract_clean_text(str(script_json))
+        else:
+            raise FileNotFoundError(
+                f"No script file found. Tried: {script_path}, {script_json}"
+            )
 
     if not text:
-        raise ValueError(f"voiceover.txt is empty: {script_path}")
+        raise ValueError(f"Script text is empty")
 
     print(f"  🎙️  Generating TTS with voice: {voice}")
     print(f"  📝  Text length: {len(text)} characters")
@@ -82,20 +108,20 @@ async def generate_from_script_file(
     try:
         if USE_PYTTX3:
             raise Exception("Forced pyttsx3")
-        await generate_voiceover(text, voice, output_path)
+        await generate_voiceover(text, voice, str(output_path))
     except Exception as e:
         print(f"  ⚠️  Edge-TTS failed: {e}")
         print("  🔄  Trying offline pyttsx3...")
         # pyttsx3 saves as WAV, convert to MP3 if needed
-        wav_path = output_path.replace(".mp3", ".wav")
+        wav_path = str(output_path).replace(".mp3", ".wav")
         generate_voiceover_pyttsx3(text, wav_path)
         # Rename to mp3 (ffmpeg can handle wav->mp3 conversion later)
         if os.path.exists(wav_path):
-            os.replace(wav_path, output_path)
+            os.replace(wav_path, str(output_path))
 
     size_kb = os.path.getsize(output_path) / 1024
     print(f"  ✅  Audio saved ({size_kb:.0f} KB): {output_path}")
-    return output_path
+    return str(output_path)
 
 
 def generate_voiceover_sync(
@@ -111,6 +137,7 @@ def generate_voiceover_sync(
 def list_voices():
     """Print all available Edge-TTS voices (for reference)."""
     async def _list():
+        import edge_tts
         voices = await edge_tts.list_voices()
         en_voices = [v for v in voices if v["Locale"].startswith("en-")]
         for v in en_voices:

@@ -93,7 +93,7 @@ class Pipeline:
                 "success": True,
                 "title": script_data.get("title"),
                 "word_count": script_data.get("word_count"),
-"visual_tags": len(script_data.get("visual_tags", [])),
+                "visual_tags": len(script_data.get("visual_tags", [])),
             }
 
             # ── PHASE 2b: TTS Voiceover ───────────────────────────────────

@@ -6,6 +6,7 @@ Uses Gemini/OpenRouter to write scripts with [VISUAL:] tags every 3-4 seconds.
 import os
 import json
 import re
+from pathlib import Path
 from dotenv import load_dotenv
 from ai_client import get_client
 
@@ -59,7 +60,7 @@ Return ONLY raw JSON. No markdown. No backticks. No preamble. Exactly:
 class ScriptGenerator:
     def __init__(self, output_dir: str = None):
         self.ai = get_client()
-        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
+        self.output_dir = Path(output_dir or os.getenv("OUTPUT_DIR", "output"))
         os.makedirs(self.output_dir, exist_ok=True)
 
     def generate_script(self, topic: str, concept: dict = None) -> dict:
@@ -115,13 +116,13 @@ The script MUST:
         data["word_count"] = len(data.get("script", "").split())
 
         # Save script
-        script_path = os.path.join(self.output_dir, "script.json")
+        script_path = self.output_dir / "script.json"
         with open(script_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         # Save clean voiceover text (no [VISUAL:] tags)
         clean_text = self._strip_visual_tags(data.get("script", ""))
-        voice_path = os.path.join(self.output_dir, "voiceover.txt")
+        voice_path = self.output_dir / "voiceover.txt"
         with open(voice_path, "w", encoding="utf-8") as f:
             f.write(clean_text)
 
