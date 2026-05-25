@@ -1,0 +1,36 @@
+# Environment variables - DO NOT commit real API keys
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output directories
+output/
+temp/
+*.mp4
+*.wav
+*.mp3
+
+# Credentials
+config/client_secrets.json
+token.json
+
+# OS
+.DS_Store
+Thumbs.db
