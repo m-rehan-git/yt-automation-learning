@@ -5,6 +5,8 @@ Provides interface to Google's Gemini models.
 
 import os
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -15,11 +17,7 @@ class AIClient:
         api_key = os.getenv("GEMINI_API_KEY")
         if api_key:
             try:
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-                self.client = genai.GenerativeModel(
-                    model_name="gemini-1.5-flash-latest",
-                )
+                self.client = genai.Client(api_key=api_key)
             except Exception as e:
                 print(f"  ⚠️  Gemini init failed: {e}")
 
@@ -29,9 +27,13 @@ class AIClient:
             raise RuntimeError("Gemini client not initialized")
 
         try:
-            response = self.client.generate_content(
-                user_prompt,
-                generation_config={"system_instruction": system_prompt}
+            response = self.client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    temperature=temperature,
+                )
             )
             return response.text
         except Exception as e:

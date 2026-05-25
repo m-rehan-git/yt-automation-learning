@@ -25,6 +25,7 @@ from visuals import VisualsFetcher
 from thumbnails import ThumbnailGenerator
 from compose import VideoComposer
 from seo import SEOGenerator
+from upload import YouTubeUploader
 
 
 BANNER = """
@@ -124,7 +125,6 @@ class Pipeline:
             if upload:
                 self._header("PHASE 3d", "YOUTUBE UPLOAD")
                 try:
-                    from upload import YouTubeUploader
                     uploader = YouTubeUploader(output_dir=self.output_dir)
                     upload_result = uploader.upload_from_pipeline_output()
                     results["stages"]["upload"] = {

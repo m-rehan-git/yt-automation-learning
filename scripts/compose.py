@@ -107,6 +107,8 @@ class VideoComposer:
         # Burn subtitles
         srt_path = self._generate_srt(script_data, audio_duration)
         if srt_path and Path(srt_path).exists():
+            # Convert Windows path to FFmpeg-compatible format (forward slashes, escaped colon)
+            srt_path = str(srt_path).replace("\\", "/").replace(":", "\\:")
             final_output = str(temp_output)
             subprocess.run([
                 "ffmpeg", "-y", "-i", str(temp_output),

@@ -14,6 +14,13 @@ load_dotenv()
 
 
 class ThumbnailGenerator:
+    W = 1280
+    H = 720
+    BG_COLOR = (25, 25, 50, 255)
+    ACCENT_1 = (220, 30, 30, 255)
+    ACCENT_2 = (255, 200, 0, 255)
+    TEXT_COLOR = (255, 255, 255, 255)
+
     def __init__(self, output_dir: str = None):
         self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
         os.makedirs(self.output_dir, exist_ok=True)
