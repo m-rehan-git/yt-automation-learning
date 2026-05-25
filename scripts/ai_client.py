@@ -34,7 +34,7 @@ class AIClient:
             try:
                 genai.configure(api_key=gemini_key)
                 self.gemini_client = genai.GenerativeModel(
-                    model_name="gemini-1.5-flash",
+                    model_name="gemini-2.0-flash",
                 )
             except Exception as e:
                 print(f"  ⚠️  Gemini init failed: {e}")
@@ -57,7 +57,7 @@ class AIClient:
         if self.gemini_client:
             try:
                 model = genai.GenerativeModel(
-                    model_name="gemini-1.5-flash",
+                    model_name="gemini-2.0-flash",
                     system_instruction=system_prompt,
                 )
                 response = model.generate_content(user_prompt)
