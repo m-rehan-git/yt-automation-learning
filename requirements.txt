@@ -6,9 +6,6 @@ tqdm>=4.66.0
 # AI — Gemini
 google-generativeai>=0.7.2
 
-# AI — OpenRouter (OpenAI-compatible API)
-openai>=1.58.1
-
 # Text-to-Speech
 edge-tts>=6.1.9
 
