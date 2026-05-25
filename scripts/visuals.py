@@ -24,11 +24,11 @@ FALLBACK_QUERIES = [
 
 
 class VisualsFetcher:
-    def __init__(self):
+    def __init__(self, output_dir: str = None):
         self.api_key = os.getenv("PEXELS_API_KEY")
         if not self.api_key:
             raise ValueError("PEXELS_API_KEY not set in .env")
-        self.output_dir = os.getenv("OUTPUT_DIR", "output")
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
         self.clips_dir = os.path.join(self.output_dir, "clips")
         os.makedirs(self.clips_dir, exist_ok=True)
         self.headers = {"Authorization": self.api_key}

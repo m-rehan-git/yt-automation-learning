@@ -6,6 +6,7 @@ and produce 5 hyper-optimised video concepts.
 
 import os
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 from ai_client import get_client
 
@@ -42,8 +43,9 @@ Rules:
 
 
 class NicheResearcher:
-    def __init__(self):
+    def __init__(self, output_dir: str = None):
         self.ai = get_client()
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
 
     def research(self, niche: str, competitor_info: str = "") -> dict:
         """

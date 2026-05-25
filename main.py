@@ -7,7 +7,6 @@ Phases: Research → Script → TTS → Footage → Compose → SEO → Upload
 import os
 import sys
 import json
-import asyncio
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -20,7 +19,6 @@ sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 
 from researcher import NicheResearcher
 from script_generator import ScriptGenerator
-from voiceover import generate_from_script_file
 from visuals import VisualsFetcher
 from thumbnails import ThumbnailGenerator
 from compose import VideoComposer
@@ -61,7 +59,7 @@ class Pipeline:
                 niche = topic or os.getenv("CHANNEL_NICHE", "Mystery and History")
                 print(f"  📌  Topic override: {niche}")
                 if not skip_research:
-                    researcher = NicheResearcher()
+                    researcher = NicheResearcher(output_dir=self.output_dir)
                     blueprint = researcher.research(niche)
                     concept = researcher.pick_top_concept(blueprint)
                     topic = concept.get("concept_title", niche)
@@ -75,7 +73,7 @@ class Pipeline:
                     results["stages"]["research"] = {"success": True, "skipped": True}
             else:
                 niche = os.getenv("CHANNEL_NICHE", "Mystery and Ancient History")
-                researcher = NicheResearcher()
+                researcher = NicheResearcher(output_dir=self.output_dir)
                 blueprint = researcher.research(niche)
                 concept = researcher.pick_top_concept(blueprint)
                 topic = concept.get("concept_title", niche)
@@ -89,29 +87,30 @@ class Pipeline:
 
             # ── PHASE 2: Script Generation ────────────────────────────────
             self._header("PHASE 2", "RETENTION-DRIVEN SCRIPTWRITING")
-            script_gen = ScriptGenerator()
+            script_gen = ScriptGenerator(output_dir=self.output_dir)
             script_data = script_gen.generate_script(topic, concept=concept)
             results["stages"]["script"] = {
                 "success": True,
                 "title": script_data.get("title"),
                 "word_count": script_data.get("word_count"),
-                "visual_tags": len(script_data.get("visual_tags", [])),
+"visual_tags": len(script_data.get("visual_tags", [])),
             }
 
             # ── PHASE 2b: TTS Voiceover ───────────────────────────────────
             self._header("PHASE 2b", "TEXT-TO-SPEECH VOICEOVER")
-            audio_path = asyncio.run(generate_from_script_file())
+            from voiceover import generate_voiceover_sync
+            audio_path = generate_voiceover_sync(output_dir=self.output_dir)
             results["stages"]["voiceover"] = {"success": True, "audio_path": audio_path}
 
             # ── PHASE 2c: Stock Footage ───────────────────────────────────
             self._header("PHASE 2c", "STOCK FOOTAGE DOWNLOAD (PEXELS)")
-            fetcher = VisualsFetcher()
+            fetcher = VisualsFetcher(output_dir=self.output_dir)
             clips = fetcher.fetch_videos_for_script(script_data)
             results["stages"]["visuals"] = {"success": True, "clips": len(clips)}
 
             # ── PHASE 3a: SEO Metadata ────────────────────────────────────
             self._header("PHASE 3a", "SEO METADATA GENERATION")
-            seo_gen = SEOGenerator()
+            seo_gen = SEOGenerator(output_dir=self.output_dir)
             metadata = seo_gen.generate_metadata(script_data)
             results["stages"]["seo"] = {
                 "success": True,
@@ -120,13 +119,13 @@ class Pipeline:
 
             # ── PHASE 3b: Thumbnail ───────────────────────────────────────
             self._header("PHASE 3b", "THUMBNAIL GENERATION")
-            thumb_gen = ThumbnailGenerator()
+            thumb_gen = ThumbnailGenerator(output_dir=self.output_dir)
             thumb_path = thumb_gen.create_from_script(script_data)
             results["stages"]["thumbnail"] = {"success": True, "path": thumb_path}
 
             # ── PHASE 3c: Video Composition ───────────────────────────────
             self._header("PHASE 3c", "VIDEO COMPOSITION (FFMPEG)")
-            composer = VideoComposer()
+            composer = VideoComposer(output_dir=self.output_dir)
             video_path = composer.create_from_pipeline_output()
             results["stages"]["compose"] = {"success": True, "video_path": video_path}
 
@@ -135,7 +134,7 @@ class Pipeline:
                 self._header("PHASE 3d", "YOUTUBE UPLOAD")
                 try:
                     from upload import YouTubeUploader
-                    uploader = YouTubeUploader()
+                    uploader = YouTubeUploader(output_dir=self.output_dir)
                     upload_result = uploader.upload_from_pipeline_output()
                     results["stages"]["upload"] = {
                         "success": True,

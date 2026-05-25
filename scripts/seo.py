@@ -45,9 +45,9 @@ Hashtags: 3–5, all relevant and not too niche.
 
 
 class SEOGenerator:
-    def __init__(self):
+    def __init__(self, output_dir: str = None):
         self.ai = get_client()
-        self.output_dir = os.getenv("OUTPUT_DIR", "output")
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
 
     def generate_metadata(self, script_data: dict) -> dict:
         """Generate full SEO metadata package from script data."""

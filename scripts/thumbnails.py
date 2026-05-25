@@ -14,17 +14,8 @@ load_dotenv()
 
 
 class ThumbnailGenerator:
-    W, H = 1280, 720  # YouTube standard
-
-    # Dark cinematic palette
-    BG_COLOR = (15, 15, 25)
-    ACCENT_1 = (220, 50, 50)    # Red
-    ACCENT_2 = (255, 200, 0)    # Gold
-    TEXT_COLOR = (255, 255, 255)
-    SHADOW_COLOR = (0, 0, 0, 180)
-
-    def __init__(self):
-        self.output_dir = os.getenv("OUTPUT_DIR", "output")
+    def __init__(self, output_dir: str = None):
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
         os.makedirs(self.output_dir, exist_ok=True)
 
     def create_from_script(self, script_data: dict) -> str:

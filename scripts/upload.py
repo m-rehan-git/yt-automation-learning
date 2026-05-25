@@ -22,18 +22,18 @@ except ImportError:
 
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-CLIENT_SECRETS = "config/client_secrets.json"
-TOKEN_PICKLE = "config/token.pickle"
+CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), "..", "config", "client_secrets.json")
+TOKEN_PICKLE = os.path.join(os.path.dirname(__file__), "..", "config", "token.pickle")
 
 
 class YouTubeUploader:
-    def __init__(self):
+    def __init__(self, output_dir: str = None):
         if not GOOGLE_OK:
             raise ImportError(
                 "Google API libraries not installed.\n"
                 "Run: pip install google-api-python-client google-auth-oauthlib"
             )
-        self.output_dir = os.getenv("OUTPUT_DIR", "output")
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
         self.youtube = self._authenticate()
 
     def _authenticate(self):

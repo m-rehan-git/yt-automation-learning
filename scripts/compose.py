@@ -33,8 +33,8 @@ USE_FFMPEG_ONLY = os.getenv("USE_FFMPEG_ONLY", "true").lower() == "true"
 
 
 class VideoComposer:
-    def __init__(self):
-        self.output_dir = os.getenv("OUTPUT_DIR", "output")
+    def __init__(self, output_dir: str = None):
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
         self.clips_dir = os.path.join(self.output_dir, "clips")
         self.width = int(os.getenv("VIDEO_WIDTH", 1920))
         self.height = int(os.getenv("VIDEO_HEIGHT", 1080))

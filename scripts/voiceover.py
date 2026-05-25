@@ -43,12 +43,13 @@ async def generate_from_script_file(
     script_path: str = None,
     voice: str = None,
     output_path: str = None,
+    output_dir: str = None,
 ) -> str:
     """
     Read voiceover.txt (clean script) and generate audio.
     Returns path to the generated MP3.
     """
-    output_dir = os.getenv("OUTPUT_DIR", "output")
+    output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
 
     # Resolve paths
     if script_path is None:
@@ -95,6 +96,16 @@ async def generate_from_script_file(
     size_kb = os.path.getsize(output_path) / 1024
     print(f"  ✅  Audio saved ({size_kb:.0f} KB): {output_path}")
     return output_path
+
+
+def generate_voiceover_sync(
+    script_path: str = None,
+    voice: str = None,
+    output_path: str = None,
+    output_dir: str = None,
+) -> str:
+    """Synchronous wrapper for generate_from_script_file."""
+    return asyncio.run(generate_from_script_file(script_path, voice, output_path, output_dir))
 
 
 def list_voices():

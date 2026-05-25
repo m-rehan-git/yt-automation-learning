@@ -57,9 +57,9 @@ Return ONLY raw JSON. No markdown. No backticks. No preamble. Exactly:
 
 
 class ScriptGenerator:
-    def __init__(self):
+    def __init__(self, output_dir: str = None):
         self.ai = get_client()
-        self.output_dir = os.getenv("OUTPUT_DIR", "output")
+        self.output_dir = output_dir or os.getenv("OUTPUT_DIR", "output")
         os.makedirs(self.output_dir, exist_ok=True)
 
     def generate_script(self, topic: str, concept: dict = None) -> dict:
