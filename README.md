@@ -1,7 +1,7 @@
 # 🎬 YouTube Automation Agent
 
 **100% free** end-to-end faceless YouTube channel automation.  
-Powered by Gemini 1.5 Flash · Edge-TTS · Pexels · FFmpeg
+Powered by Gemini 2.5 Flash · Edge-TTS · Pexels · FFmpeg
 
 ---
 
@@ -122,7 +122,7 @@ Go to **Actions → YouTube Automation Pipeline → Run workflow**
 
 | Component | Tool | Cost |
 |-----------|------|------|
-| AI Research + Script + SEO | Gemini 1.5 Flash | **$0** (free tier) |
+| AI Research + Script + SEO | Gemini 2.5 Flash | **$0** (free tier) |
 | Text-to-Speech | Microsoft Edge-TTS | **$0** |
 | Stock Footage | Pexels API | **$0** |
 | Video Rendering | FFmpeg | **$0** |
