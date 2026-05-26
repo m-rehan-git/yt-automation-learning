@@ -76,8 +76,7 @@ class VideoComposer:
                     "ffmpeg", "-y", "-stream_loop", "-1",
                     "-i", str(cf),
                     "-t", str(seg),
-                    "-vf", f"scale={self.width}:{self.height}:force_original_aspect_ratio=decrease,"
-                           f"pad={self.width}:{self.height}:(ow-iw)/2:(oh-ih)/2",
+                     "-vf", f"scale={self.width}:{self.height}:force_original_aspect_ratio=increase,crop={self.width}:{self.height}",
                     "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23",
                     "-an", str(trimmed)
                 ], check=True, capture_output=True)
